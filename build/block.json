@@ -1,0 +1,22 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "create-block/naiop-event-checkout",
+  "version": "0.1.0",
+  "title": "NAIOP Event Checkout",
+  "category": "widgets",
+  "icon": "smiley",
+  "description": "Collect attendee information.",
+  "example": {},
+  "parent": [
+    "woocommerce/checkout-fields-block"
+  ],
+  "supports": {
+    "html": false
+  },
+  "textdomain": "naiop-event-checkout",
+  "editorScript": "file:./index.js",
+  "editorStyle": "file:./index.css",
+  "style": "file:./style-index.css",
+  "viewScript": "file:./view.js"
+}
