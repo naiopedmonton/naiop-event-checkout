@@ -69,19 +69,19 @@ add_action('woocommerce_blocks_loaded',
 	}
 );
 
-add_action('__experimental_woocommerce_blocks_validate_location_address_fields',
+/*add_action('__experimental_woocommerce_blocks_validate_location_address_fields',
 	function ( \WP_Error $errors, $fields, $group ) {
 		if ( $fields['namespace/gov-id'] !== $fields['namespace/confirm-gov-id'] ) {
 			$errors->add( 'gov_id_mismatch', 'Please ensure your government ID matches the confirmation.' );
 		}
-	}, 10, 3);
+	}, 10, 3);*/
 
 
 
-add_filter('woocommerce_locate_template', 'locate_order_email_template', 10, 3);
+/*add_filter('woocommerce_locate_template', 'locate_order_email_template', 10, 3);
 function locate_order_email_template($template, $template_name, $template_path) {
 	if ($template_name === "emails/customer-processing-order.php") {
-		$template = 'wp-content/plugins/naiop-event-checkout/woocommerce/emails/customer-processing-order.php';
+		$template = 'wordpress/plugins/naiop-event-checkout/woocommerce/emails/customer-processing-order.php';
 	}
     return $template;
-}
+}*/
