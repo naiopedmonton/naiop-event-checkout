@@ -4,7 +4,7 @@
  * Plugin Name: NAIOP Event Checkout
  * Description: NAIOP Event Checkout
  * Author: Scott Dohei
- * Version: 1.0.0
+ * Version: 1.2.0
  * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * Text Domain: naiop-event-checkout
