@@ -79,7 +79,7 @@ add_action('__experimental_woocommerce_blocks_validate_location_address_fields',
 
 
 add_filter('woocommerce_locate_template', 'locate_order_email_template', 10, 3);
-function naiop_custom_sidebar_panels($template, $template_name, $template_path) {
+function locate_order_email_template($template, $template_name, $template_path) {
 	if ($template_name === "emails/customer-processing-order.php") {
 		$template = 'wp-content/plugins/naiop-event-checkout/woocommerce/emails/customer-processing-order.php';
 	}
