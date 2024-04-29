@@ -4,7 +4,7 @@
  * Plugin Name: NAIOP Event Checkout
  * Description: NAIOP Event Checkout
  * Author: Scott Dohei
- * Version: 1.2.0
+ * Version: 1.3.0
  * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * Text Domain: naiop-event-checkout
@@ -75,3 +75,13 @@ add_action('__experimental_woocommerce_blocks_validate_location_address_fields',
 			$errors->add( 'gov_id_mismatch', 'Please ensure your government ID matches the confirmation.' );
 		}
 	}, 10, 3);
+
+
+
+add_filter('woocommerce_locate_template', 'locate_order_email_template');
+function naiop_custom_sidebar_panels($template, $template_name, $template_path) {
+	if ($template_name === "emails/customer-processing-order.php") {
+		$template = 'wp-content/plugins/naiop-event-checkout/woocommerce/emails/customer-processing-order.php';
+	}
+    return $template;
+}
