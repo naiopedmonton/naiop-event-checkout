@@ -1,17 +1,15 @@
 <?php
+
 /**
- * Plugin Name:       NAIOP Event Checkout
- * Description:       NAIOP Event Checkout
- * GitHub Plugin URI:   https://github.com/TODO *****
- * Requires at least: 6.1
- * Requires PHP:      7.0
- * Version:           0.1.0
- * Author:            Scott Dohei
- * License:           GPL-2.0-or-later
- * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       naiop-event-checkout
- *
- * @package CreateBlock
+ * Plugin Name: NAIOP Event Checkout
+ * Description: NAIOP Event Checkout
+ * Author: Scott Dohei
+ * Version: 1.0.0
+ * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
+ * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
+ * Text Domain: naiop-event-checkout
+ * License:     GPL-2.0+
+ * License URI: http://www.gnu.org/license/gpl-2.0.txt
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -30,81 +28,50 @@ function create_block_naiop_event_checkout_block_init() {
 }
 add_action( 'init', 'create_block_naiop_event_checkout_block_init' );
 
-add_action(
-	'woocommerce_blocks_loaded',
+add_action('woocommerce_blocks_loaded',
 	function() {
-        __experimental_woocommerce_blocks_register_checkout_field(
+		__experimental_woocommerce_blocks_register_checkout_field(
 			array(
-				'id'            => 'naiop/partner',
-				'label'         => 'NAIOP EPartner?',
-                'type'          => 'checkbox',
+				'id'            => 'naiop/diet',
+				'label'         => 'Dietary restrictions or preferences',
 				'location'      => 'additional',
-				'required'      => true,
-				'attributes'    => array(),
+				'required'      => false,
+				'attributes'    => array(
+					'autocomplete' => 'dietary-restrictions'
+				),
 			),
 		);
 		__experimental_woocommerce_blocks_register_checkout_field(
 			array(
-				'id'            => 'namespace/partner-id',
+				'id'            => 'naiop/partner-id',
 				'label'         => 'NAIOP Edmonton Partner',
 				'location'      => 'additional',
-				'required'      => true,
+				'required'      => false,
 				'attributes'    => array(
-					'autocomplete' => 'partner-id'
+					'autocomplete' => 'partner-name'
 				),
 			),
 		);
-		/*__experimental_woocommerce_blocks_register_checkout_field(
-			array(
-				'id'            => 'namespace/confirm-gov-id',
-				'label'         => 'Confirm government ID',
-				'location'      => 'additional',
-				'required'      => true,
-				'attributes'    => array(
-					'autocomplete' => 'government-id',
-					'pattern'      => '[A-Z0-9]{5}', // A 5-character string of capital letters and numbers.
-					'title'        => 'Confirm your 5-digit Government ID',
-				),
-			),
-		);*/
 
-		add_action(
-			'_experimental_woocommerce_blocks_sanitize_additional_field',
+		/*add_action('_experimental_woocommerce_blocks_sanitize_additional_field',
 			function ( $field_value, $field_key ) {
-				/*if ( 'namespace/gov-id' === $field_key || 'namespace/confirm-gov-id' === $field_key ) {
-					$field_value = str_replace( ' ', '', $field_key );
-					$field_value = strtoupper( $field_value );
-				}*/
+				if ( 'naiop/partner-id' === $field_key ) {}
 				return $field_value;
-			},
-			10,
-			2
-		);
+			}, 10, 2);
 
-		add_action(
-		'__experimental_woocommerce_blocks_validate_additional_field',
+		add_action('__experimental_woocommerce_blocks_validate_additional_field',
 			function ( WP_Error $errors, $field_key, $field_value ) {
-				/*if ( 'namespace/gov-id' === $field_key ) {
-					$match = preg_match( '/[A-Z0-9]{5}/', $field_value );
-					if ( 0 === $match || false === $match ) {
-						$errors->add( 'invalid_gov_id', 'Please ensure your government ID matches the correct format.' );
-					}
-				}*/
+				if ( 'naiop/partner-id' === $field_key ) {
+					//$errors->add('invalid_partner', 'Please check partner');
+				}
 				return $error;
-			},
-			10,
-			3
-		);
+			}, 10, 3);*/
 	}
 );
 
-add_action(
-	'__experimental_woocommerce_blocks_validate_location_address_fields',
+add_action('__experimental_woocommerce_blocks_validate_location_address_fields',
 	function ( \WP_Error $errors, $fields, $group ) {
 		if ( $fields['namespace/gov-id'] !== $fields['namespace/confirm-gov-id'] ) {
 			$errors->add( 'gov_id_mismatch', 'Please ensure your government ID matches the confirmation.' );
 		}
-	},
-	10,
-	3
-);
+	}, 10, 3);
