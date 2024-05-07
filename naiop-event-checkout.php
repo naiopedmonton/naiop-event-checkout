@@ -4,7 +4,7 @@
  * Plugin Name: NAIOP Event Checkout
  * Description: NAIOP Event Checkout
  * Author: Scott Dohei
- * Version: 1.6.0
+ * Version: 1.7.0
  * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * Text Domain: naiop-event-checkout
@@ -88,8 +88,44 @@ function locate_order_email_template($template, $template_name, $template_path) 
 
 add_filter('woocommerce_locate_template', 'locate_order_email_template', 10, 4);
 function locate_order_email_template($template, $template_name, $template_path) {
-   if ('customer-processing-order.php' === basename($template)){
-       $template = trailingslashit(plugin_dir_path( __FILE__ )) . 'woocommerce/emails/customer-processing-order.php';
-   }
-   return $template;
+	if ('customer-processing-order.php' === basename($template)){
+		$template = trailingslashit(plugin_dir_path( __FILE__ )) . 'woocommerce/emails/customer-processing-order.php';
+	}
+	return $template;
 }
+
+function event_registration_fields($index) {
+	echo '<p class="form-row form-row-first validate-required" id="registration_name">';
+		echo '<label for="name">Name&nbsp;<abbr class="required" title="required">*</abbr></label>';
+		echo '<span class="woocommerce-input-wrapper">';
+			echo '<input type="text" class="input-text " name="reg_name[' . $index . ']" id="name" placeholder="" value="" autocomplete="given-name">';
+		echo '</span>';
+	echo '</p>';
+	echo '<p class="form-row form-row-first validate-required" id="registration_email">';
+		echo '<label for="email">Email&nbsp;<abbr class="required" title="required">*</abbr></label>';
+		echo '<span class="woocommerce-input-wrapper">';
+			echo '<input type="text" class="input-text " name="reg_email[' . $index . ']" id="email" placeholder="" value="" autocomplete="given-name">';
+		echo '</span>';
+	echo '</p>';
+}
+
+add_filter('woocommerce_checkout_after_customer_details', 'naiop_checkout_end', 10);
+function naiop_checkout_end() {
+	//error_log(print_r($posted, true));
+	//error_log('sss'.print_r($something, true));
+	echo '<div class="col2-set">';
+		echo '<h3>Event Registration</h3>';
+		$index = 0;
+		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
+			if ($cart_item['quantity'] > 0) { // TODO: is an event?
+				for ($x = 0; $x < $cart_item['quantity']; $x++) {
+					// TODO: multiple seats?
+					//event_registration_fields($index);
+					$index++;
+				}
+				echo 'TODO: register ' . $index . ' people here';
+			}
+		}
+	echo '</div>';
+}
+
