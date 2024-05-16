@@ -4,7 +4,7 @@
  * Plugin Name: NAIOP Event Checkout
  * Description: NAIOP Event Checkout
  * Author: Scott Dohei
- * Version: 2.0.0
+ * Version: 2.1.0
  * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * Text Domain: naiop-event-checkout
@@ -26,7 +26,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 function create_block_naiop_event_checkout_block_init() {
 	register_block_type( __DIR__ . '/build' );
 }
-add_action( 'init', 'create_block_naiop_event_checkout_block_init' );
+add_action('init', 'create_block_naiop_event_checkout_block_init');
+
+add_action('wp_enqueue_scripts', 'naiop_checkout_scripts');
+function naiop_checkout_scripts() {
+	wp_register_style('naiop-checkout', plugins_url('style.css', __FILE__ ));
+    wp_enqueue_style('naiop-checkout');
+}
 
 add_action('woocommerce_blocks_loaded',
 	function() {
@@ -113,7 +119,7 @@ function event_registration_fields($count) {
 }
 
 function course_demographic_check($value) {
-	echo '<p class="form-row form-row-first">';
+	echo '<p class="form-row check-row">';
 		echo '<span class="woocommerce-input-wrapper">';
 			echo '<label class="checkbox">';
 				echo '<input type="checkbox" name="demo" value="' . $value . '">';
@@ -126,23 +132,23 @@ function course_demographic_check($value) {
 function course_fields() {
 	echo '<div>';
 		echo '<p>Please wait 2-3 business days for us to contact you with next steps.</p>';
-		echo '<p class="form-row form-row-first">';
+		echo '<p class="form-row form-row-first" style="margin-bottom:0;">';
 			echo '<label for="demo">I am (select all that apply):&nbsp;<abbr class="required" title="required">*</abbr></label>';
 		echo '</p>';
-		echo '<div style="">';
-		course_demographic_check("Employed at a brokerage");
-		course_demographic_check("Employed in commercial real estate");
-		course_demographic_check("Employed in an industry related to commercial real estate");
-		course_demographic_check("Working outside of real estate and looking to change careers");
-		course_demographic_check("A post-secondary student");
-		course_demographic_check("Other");
-		echo '<div>';
+		echo '<div style="clear: both; padding-left: 2rem;">';
+			course_demographic_check("Employed at a brokerage");
+			course_demographic_check("Employed in commercial real estate");
+			course_demographic_check("Employed in an industry related to commercial real estate");
+			course_demographic_check("Working outside of real estate and looking to change careers");
+			course_demographic_check("A post-secondary student");
+			course_demographic_check("Other");
+		echo '</div>';
 	echo '</div>';
 
-	echo '<p class="form-row form-row-first">';
+	echo '<p class="form-row">';
 		echo '<label for="broker">Are you planning to take the RECA licensing exam (to become a broker)? Please note, if you select this you must already have a RECA CON-ID. Get yours <a href="https://public.myreca.ca/">here</a>. You cannot change this later</label>';
 	echo '</p>';
-	echo '<p class="form-row form-row-first validate-required" id="reca_con_id">';
+	echo '<p class="form-row validate-required" id="reca_con_id">';
 		echo '<label for="reca_id">RECA CON-ID (optional)</label>';
 		echo '<span class="woocommerce-input-wrapper">';
 			echo '<input type="text" class="input-text " name="reca_con_id" id="reca_id" placeholder="" value="" autocomplete="reca-con-id">';
@@ -161,7 +167,7 @@ function is_course_cart_item($cart_item) {
 
 add_filter('woocommerce_checkout_after_customer_details', 'naiop_checkout_end', 10);
 function naiop_checkout_end() {
-	echo "<div>";
+	echo "<div class='col2-set'>";
 		$course_in_cart = false;
 		$event_registrations = 0;
 		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {

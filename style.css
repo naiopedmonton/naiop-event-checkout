@@ -1,0 +1,9 @@
+.woocommerce form .form-row.check-row {
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+.woocommerce-page .woocommerce-checkout .col2-set,
+.woocommerce-page .woocommerce-checkout #customer_details {
+    width: 48%;
+}
