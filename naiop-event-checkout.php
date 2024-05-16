@@ -4,7 +4,7 @@
  * Plugin Name: NAIOP Event Checkout
  * Description: NAIOP Event Checkout
  * Author: Scott Dohei
- * Version: 1.7.0
+ * Version: 2.0.0
  * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * Text Domain: naiop-event-checkout
@@ -94,38 +94,119 @@ function locate_order_email_template($template, $template_name, $template_path) 
 	return $template;
 }
 
-function event_registration_fields($index) {
-	echo '<p class="form-row form-row-first validate-required" id="registration_name">';
-		echo '<label for="name">Name&nbsp;<abbr class="required" title="required">*</abbr></label>';
+
+function event_registration_fields($count) {
+	for ($x = 0; $x < $count; $x++) {
+		echo '<p class="form-row form-row-first validate-required" id="registration_name">';
+			echo '<label for="name">Name&nbsp;<abbr class="required" title="required">*</abbr></label>';
+			echo '<span class="woocommerce-input-wrapper">';
+				echo '<input type="text" class="input-text " name="reg_name[' . $x . ']" id="name" placeholder="" value="" autocomplete="given-name">';
+			echo '</span>';
+		echo '</p>';
+		echo '<p class="form-row form-row-first validate-required" id="registration_email">';
+			echo '<label for="email">Email&nbsp;<abbr class="required" title="required">*</abbr></label>';
+			echo '<span class="woocommerce-input-wrapper">';
+				echo '<input type="text" class="input-text " name="reg_email[' . $x . ']" id="email" placeholder="" value="" autocomplete="given-name">';
+			echo '</span>';
+		echo '</p>';
+	}
+}
+
+function course_demographic_check($value) {
+	echo '<p class="form-row form-row-first">';
 		echo '<span class="woocommerce-input-wrapper">';
-			echo '<input type="text" class="input-text " name="reg_name[' . $index . ']" id="name" placeholder="" value="" autocomplete="given-name">';
+			echo '<label class="checkbox">';
+				echo '<input type="checkbox" name="demo" value="' . $value . '">';
+				echo ' ' . $value;
+			echo '</label>';
 		echo '</span>';
 	echo '</p>';
-	echo '<p class="form-row form-row-first validate-required" id="registration_email">';
-		echo '<label for="email">Email&nbsp;<abbr class="required" title="required">*</abbr></label>';
+}
+
+function course_fields() {
+	echo '<div>';
+		echo '<p>Please wait 2-3 business days for us to contact you with next steps.</p>';
+		echo '<p class="form-row form-row-first">';
+			echo '<label for="demo">I am (select all that apply):&nbsp;<abbr class="required" title="required">*</abbr></label>';
+		echo '</p>';
+		echo '<div style="">';
+		course_demographic_check("Employed at a brokerage");
+		course_demographic_check("Employed in commercial real estate");
+		course_demographic_check("Employed in an industry related to commercial real estate");
+		course_demographic_check("Working outside of real estate and looking to change careers");
+		course_demographic_check("A post-secondary student");
+		course_demographic_check("Other");
+		echo '<div>';
+	echo '</div>';
+
+	echo '<p class="form-row form-row-first">';
+		echo '<label for="broker">Are you planning to take the RECA licensing exam (to become a broker)? Please note, if you select this you must already have a RECA CON-ID. Get yours <a href="https://public.myreca.ca/">here</a>. You cannot change this later</label>';
+	echo '</p>';
+	echo '<p class="form-row form-row-first validate-required" id="reca_con_id">';
+		echo '<label for="reca_id">RECA CON-ID (optional)</label>';
 		echo '<span class="woocommerce-input-wrapper">';
-			echo '<input type="text" class="input-text " name="reg_email[' . $index . ']" id="email" placeholder="" value="" autocomplete="given-name">';
+			echo '<input type="text" class="input-text " name="reca_con_id" id="reca_id" placeholder="" value="" autocomplete="reca-con-id">';
 		echo '</span>';
 	echo '</p>';
+}
+
+function is_event_cart_item($cart_item) {
+	return ($cart_item['quantity'] > 0);
+}
+
+function is_course_cart_item($cart_item) {
+	$course_product_ids = array(955299, 6576, 6578); //dohei-test, prod, prod
+	return ($cart_item['quantity'] > 0 && in_array($cart_item['product_id'], $course_product_ids));
 }
 
 add_filter('woocommerce_checkout_after_customer_details', 'naiop_checkout_end', 10);
 function naiop_checkout_end() {
-	//error_log(print_r($posted, true));
-	//error_log('sss'.print_r($something, true));
-	echo '<div class="col2-set">';
-		echo '<h3>Event Registration</h3>';
-		$index = 0;
+	echo "<div>";
+		$course_in_cart = false;
+		$event_registrations = 0;
 		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
-			if ($cart_item['quantity'] > 0) { // TODO: is an event?
-				for ($x = 0; $x < $cart_item['quantity']; $x++) {
-					// TODO: multiple seats?
-					//event_registration_fields($index);
-					$index++;
-				}
-				echo 'TODO: register ' . $index . ' people here';
-			}
+			$course_in_cart = is_course_cart_item($cart_item);
+			$event_registrations += (is_event_cart_item($cart_item) ? $cart_item['quantity'] : 0);
 		}
-	echo '</div>';
+
+		if ($course_in_cart) {
+			echo '<h3>Course Registration</h3>';
+			course_fields();
+		}
+
+		if ($event_registrations > 0) {
+			echo '<h3>Event Registration</h3>';
+			event_registration_fields($event_registrations);
+		}
+	echo "</div>";
 }
 
+add_action('woocommerce_cart_subtotal', 'discount_naiop_courses', 10, 3);
+function discount_naiop_courses($subtotal, $compound, $cart) {
+	if ( is_admin() && !defined( 'DOING_AJAX' ) ) return;
+
+	$course_count = 0;
+	foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
+		if (is_course_cart_item($cart_item)) {
+			$course_count++;
+		}
+	}
+
+	if ($course_count >= 2) {
+		$re_bundle_discount = 99;
+		$coupon_name = 'Real Estate Bundle';
+		$coupon = array($coupon_name => $re_bundle_discount);
+
+		$cart->applied_coupons = array($coupon_name);
+		$cart->set_discount_total($re_bundle_discount);
+		$cart->set_total($cart->get_subtotal() - $re_bundle_discount);
+		$cart->coupon_discount_totals = $coupon;
+	}
+
+	return $subtotal;
+}
+
+//add_action( 'woocommerce_after_checkout_validation', 'naiop_checkout_validation', 20, 2 );
+function naiop_checkout_validation($data, $errors) {
+	error_log(print_r($data, true));
+}
