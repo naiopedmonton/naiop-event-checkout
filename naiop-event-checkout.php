@@ -4,7 +4,7 @@
  * Plugin Name: NAIOP Event Checkout
  * Description: NAIOP Event Checkout
  * Author: Scott Dohei
- * Version: 2.2.0
+ * Version: 2.5.0
  * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * Text Domain: naiop-event-checkout
@@ -188,9 +188,9 @@ function naiop_checkout_end() {
 	echo "</div>";
 }
 
-add_action('woocommerce_cart_subtotal', 'discount_naiop_courses', 10, 3);
-function discount_naiop_courses($subtotal, $compound, $cart) {
-	if ( is_admin() && !defined( 'DOING_AJAX' ) ) return;
+add_action('woocommerce_cart_calculate_fees', 'discount_real_estate_bundle', 25, 1);
+function discount_real_estate_bundle($cart) {
+	if (is_admin() && ! defined( 'DOING_AJAX' )) return;
 
 	$course_count = 0;
 	foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
@@ -200,17 +200,8 @@ function discount_naiop_courses($subtotal, $compound, $cart) {
 	}
 
 	if ($course_count >= 2) {
-		$re_bundle_discount = 99;
-		$coupon_name = 'Real Estate Bundle';
-		$coupon = array($coupon_name => $re_bundle_discount);
-
-		$cart->applied_coupons = array($coupon_name);
-		$cart->set_discount_total($re_bundle_discount);
-		$cart->set_total($cart->get_subtotal() - $re_bundle_discount);
-		$cart->coupon_discount_totals = $coupon;
+		$cart->add_fee(__('Real Estate Bundle Discount', 'naiop-checkout'), -99 );
 	}
-
-	return $subtotal;
 }
 
 //add_action( 'woocommerce_after_checkout_validation', 'naiop_checkout_validation', 20, 2 );
