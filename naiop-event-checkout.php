@@ -4,7 +4,7 @@
  * Plugin Name: NAIOP Event Checkout
  * Description: NAIOP Event Checkout
  * Author: Scott Dohei
- * Version: 2.1.0
+ * Version: 2.2.0
  * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * Text Domain: naiop-event-checkout
@@ -157,7 +157,8 @@ function course_fields() {
 }
 
 function is_event_cart_item($cart_item) {
-	return ($cart_item['quantity'] > 0);
+	return false;
+	//return ($cart_item['quantity'] > 0);
 }
 
 function is_course_cart_item($cart_item) {
@@ -167,7 +168,7 @@ function is_course_cart_item($cart_item) {
 
 add_filter('woocommerce_checkout_after_customer_details', 'naiop_checkout_end', 10);
 function naiop_checkout_end() {
-	echo "<div class='col2-set'>";
+	echo "<div class='col2-set' id='naiop-registration'>";
 		$course_in_cart = false;
 		$event_registrations = 0;
 		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
