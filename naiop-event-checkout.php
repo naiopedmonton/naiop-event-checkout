@@ -4,7 +4,7 @@
  * Plugin Name: NAIOP Event Checkout
  * Description: NAIOP Event Checkout
  * Author: Scott Dohei
- * Version: 2.5.0
+ * Version: 2.6.0
  * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * Text Domain: naiop-event-checkout
@@ -130,11 +130,9 @@ function course_demographic_check($value) {
 }
 
 function course_fields() {
-	echo '<div>';
-		echo '<p>Please wait 2-3 business days for us to contact you with next steps.</p>';
-		echo '<p class="form-row form-row-first" style="margin-bottom:0;">';
-			echo '<label for="demo">I am (select all that apply):&nbsp;<abbr class="required" title="required">*</abbr></label>';
-		echo '</p>';
+	echo '<p>Please wait 2-3 business days for us to contact you with next steps.</p>';
+	echo '<p class="form-row" style="margin-bottom:0;">';
+		echo '<label for="demo">I am (select all that apply):&nbsp;<abbr class="required" title="required">*</abbr></label>';
 		echo '<div style="clear: both; padding-left: 2rem;">';
 			course_demographic_check("Employed at a brokerage");
 			course_demographic_check("Employed in commercial real estate");
@@ -143,11 +141,51 @@ function course_fields() {
 			course_demographic_check("A post-secondary student");
 			course_demographic_check("Other");
 		echo '</div>';
+	echo '</p>';
+
+	echo '<div class="form-row" style="margin-bottom:0;">';
+		echo '<label for="broker">Are you planning to take the RECA licensing exam (to become a broker)? Please note, if you select ‘yes’ you must already have a RECA CON-ID prior to purchasing this course and will need to provide the number below. Don’t have a RECA CON-ID yet? Get yours <a href="https://public.myreca.ca/">here</a>.&nbsp;<abbr class="required" title="required">*</abbr></label>';
+		echo '<div style="clear: both; padding-left: 2rem; display: flex; gap: 20px">';
+			echo '<label class="checkbox">';
+				echo '<input type="radio" name="broker" value="Yes"> Yes';
+			echo '</label>';
+			echo '<label class="checkbox">';
+				echo '<input type="radio" name="broker" value="No"> No';
+			echo '</label>';
+		echo '</div>';
 	echo '</div>';
 
-	echo '<p class="form-row">';
-		echo '<label for="broker">Are you planning to take the RECA licensing exam (to become a broker)? Please note, if you select this you must already have a RECA CON-ID. Get yours <a href="https://public.myreca.ca/">here</a>. You cannot change this later</label>';
+	echo '<p class="form-row form-row-first validate-required" id="reg_fname">';
+		echo '<label for="reg_fname">First Name&nbsp;<abbr class="required" title="required">*</abbr></label>';
+		echo '<span class="woocommerce-input-wrapper">';
+			echo '<input type="text" class="input-text " name="reg_fname" id="reg_fname" placeholder="" value="" autocomplete="reg-fname">';
+		echo '</span>';
 	echo '</p>';
+	echo '<p class="form-row form-row-last validate-required" id="reg_lname">';
+		echo '<label for="reg_lname">Last Name&nbsp;<abbr class="required" title="required">*</abbr></label>';
+		echo '<span class="woocommerce-input-wrapper">';
+			echo '<input type="text" class="input-text" name="reg_lname" id="reg_lname" placeholder="" value="" autocomplete="reg-lname">';
+		echo '</span>';
+	echo '</p>';
+	echo '<p class="form-row validate-required" id="reg_email">';
+		echo '<label for="reg_email">Email&nbsp;<abbr class="required" title="required">*</abbr></label>';
+		echo '<span class="woocommerce-input-wrapper">';
+			echo '<input type="text" class="input-text" name="reg_email" id="reg_email" placeholder="" value="" autocomplete="reg-email">';
+		echo '</span>';
+	echo '</p>';
+	echo '<p class="form-row validate-required" id="reg_phone">';
+		echo '<label for="reg_phone">Phone&nbsp;<abbr class="required" title="required">*</abbr></label>';
+		echo '<span class="woocommerce-input-wrapper">';
+			echo '<input type="text" class="input-text" name="reg_phone" id="reg_phone" placeholder="" value="" autocomplete="reg-phone">';
+		echo '</span>';
+	echo '</p>';
+	echo '<p class="form-row validate-required" id="reg_company">';
+		echo '<label for="reg_company">Company (optional)</label>';
+		echo '<span class="woocommerce-input-wrapper">';
+			echo '<input type="text" class="input-text" name="reg_company" id="reg_company" placeholder="" value="" autocomplete="reg-company">';
+		echo '</span>';
+	echo '</p>';
+
 	echo '<p class="form-row validate-required" id="reca_con_id">';
 		echo '<label for="reca_id">RECA CON-ID (optional)</label>';
 		echo '<span class="woocommerce-input-wrapper">';
