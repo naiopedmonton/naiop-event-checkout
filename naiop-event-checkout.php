@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Plugin Name: NAIOP Event Checkout
- * Description: NAIOP Event Checkout
+ * Plugin Name: NAIOP Edmonton customizations
+ * Description: NAIOP Edmonton customizations
  * Author: Scott Dohei
- * Version: 2.6.0
+ * Version: 3.0.0
  * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * Text Domain: naiop-event-checkout
@@ -276,4 +276,35 @@ function naiop_checkout_validation($data, $errors) {
 	}
 	//error_log(print_r($data, true));
 	//error_log(print_r($_POST, true));
+}
+
+add_action('woocommerce_checkout_create_order', 'update_order_registrations', 22, 2);
+function update_order_registrations($order, $data) {
+	$demo_key = "naiop_demo";
+	foreach ($_POST as $post_key => $post_val) {
+		if ($post_key === $demo_key) {
+			$order->add_meta_data($demo_key, $post_val, false);
+		}
+	}
+
+	$keys = array("naiop_broker", "naiop_fname", "naiop_lname", "naiop_email", "naiop_phone");
+	foreach ($keys as $key) {
+		$order->update_meta_data($key, isset($_POST[$key]) ? $_POST[$key] : "");
+	}
+}
+
+add_filter('woocommerce_email_order_meta_fields', 'naiop_add_order_meta', 10, 3);
+function naiop_add_order_meta($fields, $sent_to_admin, $order) {
+	$demos = array();
+	foreach ($order->get_meta('naiop_demo', false) as $demo_key => $obj_value) {
+		array_push($demos, $obj_value->get_data()['value']);
+	}
+	$fields = array(
+		array("label"=>"Demographic", "value"=>implode(",", $demos)),
+		array("label"=>"First Name", "value"=>$order->get_meta('naiop_fname', true)),
+		array("label"=>"Last Name", "value"=>$order->get_meta('naiop_lname', true)),
+		array("label"=>"Email", "value"=>$order->get_meta('naiop_email', true)),
+		array("label"=>"Phone", "value"=>$order->get_meta('naiop_phone', true)),
+	);
+	return $fields;
 }
