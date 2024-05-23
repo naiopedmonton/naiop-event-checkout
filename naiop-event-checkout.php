@@ -311,28 +311,26 @@ function naiop_add_order_meta($fields, $sent_to_admin, $order) {
 }
 
 function debug_echo($s) {
-	error_log("debug echo: " . $s);
+	//error_log("debug echo: " . $s);
 	echo $s;
 }
 
 function naiop_email_order_registration($order, $sent_to_admin, $plain_text, $email) {
 	debug_echo('<table id="addresses" cellspacing="0" cellpadding="0" border="0" style="width: 100%; vertical-align: top; margin-bottom: 40px; padding: 0;" width="100%">');
 		debug_echo('<tr><td valign="top" style="text-align: left; font-family: \'Helvetica Neue\', Helvetica, Roboto, Arial, sans-serif; border: 0; padding: 0;" align="left">');
-			debug_echo('<td>');
-				debug_echo('<h2 style=\'color: #063; display: block; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 18px; font-weight: bold; line-height: 130%; margin: 0 0 18px; text-align: left;\'>Course Registration</h2>');
-				debug_echo('<div class="address" style="padding: 12px; color: #636363; border: 1px solid #e5e5e5;">');
-					$demos = array();
-					foreach ($order->get_meta('naiop_demo', false) as $demo_key => $obj_value) {
-						array_push($demos, $obj_value->get_data()['value']);
-					}
-					debug_echo('<strong>Demographic:</strong> ' . 	implode(", ", $demos) . '<br>');
-					debug_echo('<strong>First Name:</strong> ' . 	$order->get_meta('naiop_fname', true));
-					debug_echo('<strong>Last Name:</strong> ' . 	$order->get_meta('naiop_lname', true));
-					debug_echo('<strong>Email:</strong> ' . 		$order->get_meta('naiop_email', true));
-					debug_echo('<strong>Phone:</strong> ' . 		$order->get_meta('naiop_phone', true));
-				debug_echo('</div>');
-			debug_echo('</td>');
-		debug_echo('</tr>');
+			debug_echo('<h2 style=\'display: block; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 18px; font-weight: bold; line-height: 130%; margin: 0 0 18px; text-align: left;\'>Course Registration</h2>');
+			debug_echo('<div class="address" style="padding: 12px; color: #636363; border: 1px solid #e5e5e5;">');
+				$demos = array();
+				foreach ($order->get_meta('naiop_demo', false) as $demo_key => $obj_value) {
+					array_push($demos, $obj_value->get_data()['value']);
+				}
+				debug_echo('<strong>Demographic:</strong> ' . 	implode(", ", $demos) . '<br>');
+				debug_echo('<strong>First Name:</strong> ' . 	$order->get_meta('naiop_fname', true) . '<br>');
+				debug_echo('<strong>Last Name:</strong> ' . 	$order->get_meta('naiop_lname', true) . '<br>');
+				debug_echo('<strong>Email:</strong> ' . 		$order->get_meta('naiop_email', true) . '<br>');
+				debug_echo('<strong>Phone:</strong> ' . 		$order->get_meta('naiop_phone', true) . '<br>');
+			debug_echo('</div>');
+		debug_echo('</td></tr>');
 	debug_echo('</table>');
 }
 add_action('naiop_email_order_registration', 'naiop_email_order_registration', 10, 4);
