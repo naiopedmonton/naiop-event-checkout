@@ -4,7 +4,7 @@
  * Plugin Name: NAIOP Edmonton customizations
  * Description: NAIOP Edmonton customizations
  * Author: Scott Dohei
- * Version: 3.5.0
+ * Version: 3.6.0
  * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * Text Domain: naiop-event-checkout
@@ -286,7 +286,7 @@ function update_order_registrations($order, $data) {
 			$order->add_meta_data("naiop_demo", $demo_val, false);
 		}
 
-		$keys = array("naiop_broker", "naiop_fname", "naiop_lname", "naiop_email", "naiop_phone");
+		$keys = array("naiop_broker", "naiop_fname", "naiop_lname", "naiop_email", "naiop_phone", "naiop_reca_id", "naiop_company");
 		foreach ($keys as $key) {
 			$order->update_meta_data($key, isset($_POST[$key]) ? $_POST[$key] : "");
 		}
@@ -320,15 +320,27 @@ function naiop_email_order_registration($order, $sent_to_admin, $plain_text, $em
 		debug_echo('<tr><td valign="top" style="text-align: left; font-family: \'Helvetica Neue\', Helvetica, Roboto, Arial, sans-serif; border: 0; padding: 0;" align="left">');
 			debug_echo('<h2 style=\'display: block; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 18px; font-weight: bold; line-height: 130%; margin: 0 0 18px; text-align: left;\'>Course Registration</h2>');
 			debug_echo('<div class="address" style="padding: 12px; color: #636363; border: 1px solid #e5e5e5;">');
+				// required inputs
 				$demos = array();
 				foreach ($order->get_meta('naiop_demo', false) as $demo_key => $obj_value) {
 					array_push($demos, $obj_value->get_data()['value']);
 				}
-				debug_echo('<strong>Demographic:</strong> ' . 	implode(", ", $demos) . '<br>');
-				debug_echo('<strong>First Name:</strong> ' . 	$order->get_meta('naiop_fname', true) . '<br>');
-				debug_echo('<strong>Last Name:</strong> ' . 	$order->get_meta('naiop_lname', true) . '<br>');
-				debug_echo('<strong>Email:</strong> ' . 		$order->get_meta('naiop_email', true) . '<br>');
-				debug_echo('<strong>Phone:</strong> ' . 		$order->get_meta('naiop_phone', true) . '<br>');
+				debug_echo('<strong>Demographic:</strong> ' . 			implode(", ", $demos) . '<br>');
+				debug_echo('<strong>Taking the RECA exam:</strong> ' . 	$order->get_meta('naiop_broker', true) . '<br>');
+				debug_echo('<strong>First Name:</strong> ' . 			$order->get_meta('naiop_fname', true) . '<br>');
+				debug_echo('<strong>Last Name:</strong> ' . 			$order->get_meta('naiop_lname', true) . '<br>');
+				debug_echo('<strong>Email:</strong> ' . 				$order->get_meta('naiop_email', true) . '<br>');
+				debug_echo('<strong>Phone:</strong> ' . 				$order->get_meta('naiop_phone', true) . '<br>');
+				
+				// optional inputs
+				$reca_id = $order->get_meta('naiop_reca_id', true);
+				if (strlen(trim($reca_id)) > 0) {
+					debug_echo('<strong>RECA CON-ID:</strong> ' . 	$reca_id . '<br>');
+				}
+				$company = $order->get_meta('naiop_company', true);
+				if (strlen(trim($company)) > 0) {
+					debug_echo('<strong>Company:</strong> ' . 		$company . '<br>');
+				}
 			debug_echo('</div>');
 		debug_echo('</td></tr>');
 	debug_echo('</table>');
