@@ -4,7 +4,7 @@
  * Plugin Name: NAIOP Edmonton customizations
  * Description: NAIOP Edmonton customizations
  * Author: Scott Dohei
- * Version: 3.6.0
+ * Version: 4.0.0
  * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * Text Domain: naiop-event-checkout
@@ -82,16 +82,6 @@ add_action('woocommerce_blocks_loaded',
 		}
 	}, 10, 3);*/
 
-
-
-/*add_filter('woocommerce_locate_template', 'locate_order_email_template', 10, 3);
-function locate_order_email_template($template, $template_name, $template_path) {
-	if ($template_name === "emails/customer-processing-order.php") {
-		$template = 'wordpress/plugins/naiop-event-checkout/woocommerce/emails/customer-processing-order.php';
-	}
-    return $template;
-}*/
-
 add_filter('woocommerce_locate_template', 'locate_order_email_template', 10, 4);
 function locate_order_email_template($template, $template_name, $template_path) {
 	if ('customer-processing-order.php' === basename($template)){
@@ -103,19 +93,30 @@ function locate_order_email_template($template, $template_name, $template_path) 
 	return $template;
 }
 
-
 function event_registration_fields($count) {
 	for ($x = 0; $x < $count; $x++) {
-		echo '<p class="form-row form-row-first validate-required" id="registration_name">';
-			echo '<label for="name">Name&nbsp;<abbr class="required" title="required">*</abbr></label>';
+		echo '<p class="form-row form-row-first validate-required">';
+			echo '<label for="naiop_event_fname' . $x . '">First Name&nbsp;<abbr class="required" title="required">*</abbr></label>';
 			echo '<span class="woocommerce-input-wrapper">';
-				echo '<input type="text" class="input-text " name="reg_name[' . $x . ']" id="name" placeholder="" value="" autocomplete="given-name">';
+				echo '<input type="text" class="input-text " name="naiop_event_fname[]" id="naiop_event_fname' . $x . '" placeholder="" value="" autocomplete="naiop_event_fname">';
 			echo '</span>';
 		echo '</p>';
-		echo '<p class="form-row form-row-first validate-required" id="registration_email">';
-			echo '<label for="email">Email&nbsp;<abbr class="required" title="required">*</abbr></label>';
+		echo '<p class="form-row form-row-first validate-required">';
+			echo '<label for="naiop_event_lname' . $x . '">Last Name&nbsp;<abbr class="required" title="required">*</abbr></label>';
 			echo '<span class="woocommerce-input-wrapper">';
-				echo '<input type="text" class="input-text " name="reg_email[' . $x . ']" id="email" placeholder="" value="" autocomplete="given-name">';
+				echo '<input type="text" class="input-text " name="naiop_event_lname[]" id="naiop_event_lname' . $x . '" placeholder="" value="" autocomplete="naiop_event_lname">';
+			echo '</span>';
+		echo '</p>';
+		echo '<p class="form-row validate-required">';
+			echo '<label for="naiop_event_email' . $x . '">Email&nbsp;<abbr class="required" title="required">*</abbr></label>';
+			echo '<span class="woocommerce-input-wrapper">';
+				echo '<input type="text" class="input-text " name="naiop_event_email[]" id="naiop_event_email' . $x . '" placeholder="" value="" autocomplete="naiop_event_email">';
+			echo '</span>';
+		echo '</p>';
+		echo '<p class="form-row">';
+			echo '<label for="naiop_event_diet' . $x . '">Dietary Restrictions (optional)</label>';
+			echo '<span class="woocommerce-input-wrapper">';
+				echo '<input type="text" class="input-text " name="naiop_event_diet[]" id="naiop_event_diet' . $x . '" placeholder="" value="" autocomplete="naiop_event_diet">';
 			echo '</span>';
 		echo '</p>';
 	}
@@ -182,14 +183,14 @@ function course_fields() {
 			echo '<input type="text" class="input-text" name="naiop_phone" id="naiop_phone" placeholder="" value="" autocomplete="reg-phone">';
 		echo '</span>';
 	echo '</p>';
-	echo '<p class="form-row validate-required" id="naiop_company">';
+	echo '<p class="form-row" id="naiop_company">';
 		echo '<label for="naiop_company">Company (optional)</label>';
 		echo '<span class="woocommerce-input-wrapper">';
 			echo '<input type="text" class="input-text" name="naiop_company" id="naiop_company" placeholder="" value="" autocomplete="reg-company">';
 		echo '</span>';
 	echo '</p>';
 
-	echo '<p class="form-row validate-required" id="naiop_reca_id">';
+	echo '<p class="form-row" id="naiop_reca_id">';
 		echo '<label for="naiop_reca_id">RECA CON-ID (optional)</label>';
 		echo '<span class="woocommerce-input-wrapper">';
 			echo '<input type="text" class="input-text " name="naiop_reca_id" id="naiop_reca_id" placeholder="" value="" autocomplete="reca-con-id">';
@@ -197,9 +198,27 @@ function course_fields() {
 	echo '</p>';
 }
 
-function is_event_cart_item($cart_item) {
-	return false;
-	//return ($cart_item['quantity'] > 0);
+function count_cart_event_registrations() {
+	$event_registrations = 0;
+	foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
+		$event_registrations += count_cart_item_event_registrations($cart_item);
+	}
+	return $event_registrations;
+}
+
+function count_cart_item_event_registrations($cart_item) {
+	$event_category = "Event";
+	if (function_exists('mt_get_settings')) {
+		$options  = mt_get_settings();
+		$event_category = $options['naiop_ticket_cat'];
+	}
+	if (has_term($event_category, 'product_cat', $cart_item['product_id']) && $cart_item['quantity'] > 0) {
+		// TODO: lookup seats for this product_id
+		$seats_per_ticket = 1;
+		return $cart_item['quantity'] * $seats_per_ticket;
+	}
+
+	return 0;
 }
 
 function is_course_cart_item($cart_item) {
@@ -220,18 +239,12 @@ function cart_requires_course_registration() {
 add_filter('woocommerce_checkout_after_customer_details', 'naiop_checkout_end', 10);
 function naiop_checkout_end() {
 	echo "<div class='col2-set' id='naiop-registration'>";
-		$course_in_cart = false;
-		$event_registrations = 0;
-		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
-			$course_in_cart = is_course_cart_item($cart_item);
-			$event_registrations += (is_event_cart_item($cart_item) ? $cart_item['quantity'] : 0);
-		}
-
-		if ($course_in_cart) {
+		if (cart_requires_course_registration()) {
 			echo '<h3>Course Registration</h3>';
 			course_fields();
 		}
 
+		$event_registrations = count_cart_event_registrations();
 		if ($event_registrations > 0) {
 			echo '<h3>Event Registration</h3>';
 			event_registration_fields($event_registrations);
@@ -277,6 +290,43 @@ function naiop_checkout_validation($data, $errors) {
 			$errors->add('validation', __('Please enter a phone number for Course Registration.'));
 		}
 	}
+
+	$event_registrations = count_cart_event_registrations();
+	if ($event_registrations > 0) {
+		if (!isset($_POST['naiop_event_fname']) || !is_array($_POST["naiop_event_fname"]) || count($_POST["naiop_event_fname"]) < $event_registrations) {
+			$errors->add('validation', __('Wrong number of Event Registrations.'));
+		}
+		foreach ($_POST["naiop_event_fname"] as $name_val) {
+			if (strlen(trim($name_val)) <= 0) {
+				$errors->add('validation', __('Missing first name for some Event Registrations.'));
+				break;
+			}
+		}
+
+		if (!isset($_POST['naiop_event_lname']) || !is_array($_POST["naiop_event_lname"]) || count($_POST["naiop_event_lname"]) < $event_registrations) {
+			$errors->add('validation', __('Wrong number of Event Registrations.'));
+		}
+		foreach ($_POST["naiop_event_lname"] as $name_val) {
+			if (strlen(trim($name_val)) <= 0) {
+				$errors->add('validation', __('Missing last name for some Event Registrations.'));
+				break;
+			}
+		}
+		
+		if (!isset($_POST['naiop_event_email']) || !is_array($_POST["naiop_event_email"]) || count($_POST["naiop_event_email"]) < $event_registrations) {
+			$errors->add('validation', __('Wrong number of Event Registrations.'));
+		}
+		foreach ($_POST["naiop_event_email"] as $name_val) {
+			if (strlen(trim($name_val)) <= 0) {
+				$errors->add('validation', __('Missing email for some Event Registrations.'));
+				break;
+			}
+		}
+
+		if (!isset($_POST['naiop_event_diet']) || !is_array($_POST["naiop_event_diet"]) || count($_POST["naiop_event_diet"]) < $event_registrations) {
+			$errors->add('validation', __('Wrong number of Event Registrations.'));
+		}
+	}
 }
 
 add_action('woocommerce_checkout_create_order', 'update_order_registrations', 22, 2);
@@ -291,23 +341,22 @@ function update_order_registrations($order, $data) {
 			$order->update_meta_data($key, isset($_POST[$key]) ? $_POST[$key] : "");
 		}
 	}
-}
 
-add_filter('woocommerce_email_order_meta_fields', 'naiop_add_order_meta', 10, 3);
-function naiop_add_order_meta($fields, $sent_to_admin, $order) {
-	/*$demos = array();
-	foreach ($order->get_meta('naiop_demo', false) as $demo_key => $obj_value) {
-		array_push($demos, $obj_value->get_data()['value']);
+	$event_registrations = count_cart_event_registrations();
+	if ($event_registrations > 0) {
+		foreach ($_POST["naiop_event_fname"] as $name_val) {
+			$order->add_meta_data("naiop_event_fname", $name_val, false);
+		}
+		foreach ($_POST["naiop_event_lname"] as $name_val) {
+			$order->add_meta_data("naiop_event_lname", $name_val, false);
+		}
+		foreach ($_POST["naiop_event_email"] as $name_val) {
+			$order->add_meta_data("naiop_event_email", $name_val, false);
+		}
+		foreach ($_POST["naiop_event_diet"] as $name_val) {
+			$order->add_meta_data("naiop_event_diet", $name_val, false);
+		}
 	}
-	$fields = array(
-		array("label"=>"Demographic", "value"=>implode(", ", $demos)),
-		array("label"=>"First Name", "value"=>$order->get_meta('naiop_fname', true)),
-		array("label"=>"Last Name", "value"=>$order->get_meta('naiop_lname', true)),
-		array("label"=>"Email", "value"=>$order->get_meta('naiop_email', true)),
-		array("label"=>"Phone", "value"=>$order->get_meta('naiop_phone', true)),
-	);
-	error_log(print_r($fields, true));
-	return $fields;*/
 }
 
 function debug_echo($s) {
@@ -316,33 +365,78 @@ function debug_echo($s) {
 }
 
 function naiop_email_order_registration($order, $sent_to_admin, $plain_text, $email) {
-	debug_echo('<table id="addresses" cellspacing="0" cellpadding="0" border="0" style="width: 100%; vertical-align: top; margin-bottom: 40px; padding: 0;" width="100%">');
-		debug_echo('<tr><td valign="top" style="text-align: left; font-family: \'Helvetica Neue\', Helvetica, Roboto, Arial, sans-serif; border: 0; padding: 0;" align="left">');
-			debug_echo('<h2 style=\'display: block; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 18px; font-weight: bold; line-height: 130%; margin: 0 0 18px; text-align: left;\'>Course Registration</h2>');
-			debug_echo('<div class="address" style="padding: 12px; color: #636363; border: 1px solid #e5e5e5;">');
-				// required inputs
-				$demos = array();
-				foreach ($order->get_meta('naiop_demo', false) as $demo_key => $obj_value) {
-					array_push($demos, $obj_value->get_data()['value']);
-				}
-				debug_echo('<strong>Demographic:</strong> ' . 			implode(", ", $demos) . '<br>');
-				debug_echo('<strong>Taking the RECA exam:</strong> ' . 	$order->get_meta('naiop_broker', true) . '<br>');
-				debug_echo('<strong>First Name:</strong> ' . 			$order->get_meta('naiop_fname', true) . '<br>');
-				debug_echo('<strong>Last Name:</strong> ' . 			$order->get_meta('naiop_lname', true) . '<br>');
-				debug_echo('<strong>Email:</strong> ' . 				$order->get_meta('naiop_email', true) . '<br>');
-				debug_echo('<strong>Phone:</strong> ' . 				$order->get_meta('naiop_phone', true) . '<br>');
-				
-				// optional inputs
-				$reca_id = $order->get_meta('naiop_reca_id', true);
-				if (strlen(trim($reca_id)) > 0) {
-					debug_echo('<strong>RECA CON-ID:</strong> ' . 	$reca_id . '<br>');
-				}
-				$company = $order->get_meta('naiop_company', true);
-				if (strlen(trim($company)) > 0) {
-					debug_echo('<strong>Company:</strong> ' . 		$company . '<br>');
-				}
-			debug_echo('</div>');
-		debug_echo('</td></tr>');
-	debug_echo('</table>');
+	if (cart_requires_course_registration()) {
+		debug_echo('<table id="addresses" cellspacing="0" cellpadding="0" border="0" style="width: 100%; vertical-align: top; margin-bottom: 40px; padding: 0;" width="100%">');
+			debug_echo('<tr><td valign="top" style="text-align: left; font-family: \'Helvetica Neue\', Helvetica, Roboto, Arial, sans-serif; border: 0; padding: 0;" align="left">');
+				debug_echo('<h2 style=\'display: block; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 18px; font-weight: bold; line-height: 130%; margin: 0 0 18px; text-align: left;\'>Course Registration</h2>');
+				debug_echo('<div class="address" style="padding: 12px; color: #636363; border: 1px solid #e5e5e5;">');
+					// required inputs
+					$demos = array();
+					foreach ($order->get_meta('naiop_demo', false) as $demo_key => $obj_value) {
+						array_push($demos, $obj_value->get_data()['value']);
+					}
+					debug_echo('<strong>Demographic:</strong> ' . 			implode(", ", $demos) . '<br>');
+					debug_echo('<strong>Taking the RECA exam:</strong> ' . 	$order->get_meta('naiop_broker', true) . '<br>');
+					debug_echo('<strong>First Name:</strong> ' . 			$order->get_meta('naiop_fname', true) . '<br>');
+					debug_echo('<strong>Last Name:</strong> ' . 			$order->get_meta('naiop_lname', true) . '<br>');
+					debug_echo('<strong>Email:</strong> ' . 				$order->get_meta('naiop_email', true) . '<br>');
+					debug_echo('<strong>Phone:</strong> ' . 				$order->get_meta('naiop_phone', true) . '<br>');
+					
+					// optional inputs
+					$reca_id = $order->get_meta('naiop_reca_id', true);
+					if (strlen(trim($reca_id)) > 0) {
+						debug_echo('<strong>RECA CON-ID:</strong> ' . 	$reca_id . '<br>');
+					}
+					$company = $order->get_meta('naiop_company', true);
+					if (strlen(trim($company)) > 0) {
+						debug_echo('<strong>Company:</strong> ' . 		$company . '<br>');
+					}
+				debug_echo('</div>');
+			debug_echo('</td></tr>');
+		debug_echo('</table>');
+	}
+
+	$event_registrations = count_cart_event_registrations();
+	if ($event_registrations > 0) {
+		debug_echo('<table id="registrations" cellspacing="0" cellpadding="0" border="0" style="width: 100%; vertical-align: top; margin-bottom: 40px; padding: 0;" width="100%">');
+			debug_echo('<tr><td valign="top" style="text-align: left; font-family: \'Helvetica Neue\', Helvetica, Roboto, Arial, sans-serif; border: 0; padding: 0;" align="left">');
+				debug_echo('<h2 style=\'display: block; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 18px; font-weight: bold; line-height: 130%; margin: 0 0 18px; text-align: left;\'>Event Registration</h2>');
+				debug_echo('<div class="address" style="padding: 12px; color: #636363; border: 1px solid #e5e5e5;">');
+					// required inputs
+					$first_name_arr = array();
+					foreach ($order->get_meta('naiop_event_fname', false) as $key => $obj_value) {
+						array_push($first_name_arr, $obj_value->get_data()['value']);
+					}
+					$last_name_arr = array();
+					foreach ($order->get_meta('naiop_event_lname', false) as $key => $obj_value) {
+						array_push($last_name_arr, $obj_value->get_data()['value']);
+					}
+					$email_arr = array();
+					foreach ($order->get_meta('naiop_event_email', false) as $key => $obj_value) {
+						array_push($email_arr, $obj_value->get_data()['value']);
+					}
+					$diet_arr = array();
+					foreach ($order->get_meta('naiop_event_diet', false) as $key => $obj_value) {
+						array_push($diet_arr, $obj_value->get_data()['value']);
+					}
+
+					for ($x = 0; $x < $event_registrations; $x++) {
+						if (!isset($first_name_arr[$x]) || !isset($last_name_arr[$x]) || !isset($email_arr[$x])) {
+							error_log("Event registration first name is missing @ " . $x . ". Expected " . $event_registrations);
+							break;
+						}
+
+						debug_echo('<strong>Name:</strong> ' . 		$first_name_arr[$x] . " " . $last_name_arr[$x] . '<br>');
+						debug_echo('<strong>Email:</strong> ' . 	$email_arr[$x]);
+						$diet = $diet_arr[$x];
+						if (strlen($diet) > 0) {
+							debug_echo('<br><strong>Dietary Restrictions:</strong> ' . 	$diet);
+						}
+						debug_echo('<hr style="border-width: 0;">');
+					}
+				debug_echo('</div>');
+			debug_echo('</td></tr>');
+		debug_echo('</table>');
+	}
 }
 add_action('naiop_email_order_registration', 'naiop_email_order_registration', 10, 4);
