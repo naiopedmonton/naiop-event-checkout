@@ -4,7 +4,7 @@
  * Plugin Name: NAIOP Edmonton customizations
  * Description: NAIOP Edmonton customizations
  * Author: Scott Dohei
- * Version: 4.1.0
+ * Version: 4.1.1
  * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * Text Domain: naiop-event-checkout
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /* 2024-06-02: redirect /single-post/beyondbrickandmortar */
 add_action( 'init', 'beyond_brick_redirect' );
 function beyond_brick_redirect() {
-    add_rewrite_rule( 'single-post/beyondbrickandmortar$', 'beyond-brick-and-mortar', 'top' );
+    add_rewrite_rule( 'single-post/beyondbrickandmortar$', 'index.php?name=beyond-brick-and-mortar', 'top' );
 }
 
 /**
