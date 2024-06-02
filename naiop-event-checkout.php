@@ -4,7 +4,7 @@
  * Plugin Name: NAIOP Edmonton customizations
  * Description: NAIOP Edmonton customizations
  * Author: Scott Dohei
- * Version: 4.0.0
+ * Version: 4.1.0
  * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * Text Domain: naiop-event-checkout
@@ -14,6 +14,12 @@
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
+}
+
+/* 2024-06-02: redirect /single-post/beyondbrickandmortar */
+add_action( 'init', 'beyond_brick_redirect' );
+function beyond_brick_redirect() {
+    add_rewrite_rule( 'single-post/beyondbrickandmortar$', 'beyond-brick-and-mortar', 'top' );
 }
 
 /**
@@ -207,7 +213,7 @@ function count_cart_event_registrations() {
 }
 
 function count_cart_item_event_registrations($cart_item) {
-	$event_category = "Event";
+	$event_category = "Events";
 	if (function_exists('mt_get_settings')) {
 		$options  = mt_get_settings();
 		$event_category = $options['naiop_ticket_cat'];
@@ -432,7 +438,9 @@ function naiop_email_order_registration($order, $sent_to_admin, $plain_text, $em
 						if (strlen($diet) > 0) {
 							debug_echo('<br><strong>Dietary Restrictions:</strong> ' . 	$diet);
 						}
-						debug_echo('<hr style="border-width: 0;">');
+						if (($x + 1) < $event_registrations) {
+							debug_echo('<hr style="border-width: 0;">');
+						}
 					}
 				debug_echo('</div>');
 			debug_echo('</td></tr>');
