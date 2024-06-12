@@ -4,7 +4,7 @@
  * Plugin Name: NAIOP Edmonton customizations
  * Description: NAIOP Edmonton customizations
  * Author: Scott Dohei
- * Version: 4.1.1
+ * Version: 4.2.0
  * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * Text Domain: naiop-event-checkout
@@ -101,6 +101,7 @@ function locate_order_email_template($template, $template_name, $template_path) 
 
 function event_registration_fields($count) {
 	for ($x = 0; $x < $count; $x++) {
+		echo '<div class="naiop_registration">';
 		echo '<p class="form-row form-row-first validate-required">';
 			echo '<label for="naiop_event_fname' . $x . '">First Name&nbsp;<abbr class="required" title="required">*</abbr></label>';
 			echo '<span class="woocommerce-input-wrapper">';
@@ -125,6 +126,7 @@ function event_registration_fields($count) {
 				echo '<input type="text" class="input-text " name="naiop_event_diet[]" id="naiop_event_diet' . $x . '" placeholder="" value="" autocomplete="naiop_event_diet">';
 			echo '</span>';
 		echo '</p>';
+		echo '</div>';
 	}
 }
 
@@ -219,8 +221,9 @@ function count_cart_item_event_registrations($cart_item) {
 		$event_category = $options['naiop_ticket_cat'];
 	}
 	if (has_term($event_category, 'product_cat', $cart_item['product_id']) && $cart_item['quantity'] > 0) {
-		// TODO: lookup seats for this product_id
-		$seats_per_ticket = 1;
+		$product = wc_get_product( $cart_item['product_id'] );
+		$seats_per_ticket = get_post_meta( $cart_item['product_id'], "naiop_seats", true );
+		$seats_per_ticket = is_numeric( $seats_per_ticket ) ? ((int)$seats_per_ticket) : 1;
 		return $cart_item['quantity'] * $seats_per_ticket;
 	}
 
@@ -350,18 +353,10 @@ function update_order_registrations($order, $data) {
 
 	$event_registrations = count_cart_event_registrations();
 	if ($event_registrations > 0) {
-		foreach ($_POST["naiop_event_fname"] as $name_val) {
-			$order->add_meta_data("naiop_event_fname", $name_val, false);
-		}
-		foreach ($_POST["naiop_event_lname"] as $name_val) {
-			$order->add_meta_data("naiop_event_lname", $name_val, false);
-		}
-		foreach ($_POST["naiop_event_email"] as $name_val) {
-			$order->add_meta_data("naiop_event_email", $name_val, false);
-		}
-		foreach ($_POST["naiop_event_diet"] as $name_val) {
-			$order->add_meta_data("naiop_event_diet", $name_val, false);
-		}
+		$order->add_meta_data("naiop_event_fname", $_POST["naiop_event_fname"], true);
+		$order->add_meta_data("naiop_event_lname", $_POST["naiop_event_lname"], true);
+		$order->add_meta_data("naiop_event_email", $_POST["naiop_event_email"], true);
+		$order->add_meta_data("naiop_event_diet", $_POST["naiop_event_diet"], true);
 	}
 }
 
@@ -409,23 +404,10 @@ function naiop_email_order_registration($order, $sent_to_admin, $plain_text, $em
 				debug_echo('<h2 style=\'display: block; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 18px; font-weight: bold; line-height: 130%; margin: 0 0 18px; text-align: left;\'>Event Registration</h2>');
 				debug_echo('<div class="address" style="padding: 12px; color: #636363; border: 1px solid #e5e5e5;">');
 					// required inputs
-					$first_name_arr = array();
-					foreach ($order->get_meta('naiop_event_fname', false) as $key => $obj_value) {
-						array_push($first_name_arr, $obj_value->get_data()['value']);
-					}
-					$last_name_arr = array();
-					foreach ($order->get_meta('naiop_event_lname', false) as $key => $obj_value) {
-						array_push($last_name_arr, $obj_value->get_data()['value']);
-					}
-					$email_arr = array();
-					foreach ($order->get_meta('naiop_event_email', false) as $key => $obj_value) {
-						array_push($email_arr, $obj_value->get_data()['value']);
-					}
-					$diet_arr = array();
-					foreach ($order->get_meta('naiop_event_diet', false) as $key => $obj_value) {
-						array_push($diet_arr, $obj_value->get_data()['value']);
-					}
-
+					$first_name_arr = $order->get_meta('naiop_event_fname');
+					$last_name_arr = $order->get_meta('naiop_event_lname');
+					$email_arr = $order->get_meta('naiop_event_email');
+					$diet_arr = $order->get_meta('naiop_event_diet');
 					for ($x = 0; $x < $event_registrations; $x++) {
 						if (!isset($first_name_arr[$x]) || !isset($last_name_arr[$x]) || !isset($email_arr[$x])) {
 							error_log("Event registration first name is missing @ " . $x . ". Expected " . $event_registrations);
