@@ -4,7 +4,7 @@
  * Plugin Name: NAIOP Edmonton customizations
  * Description: NAIOP Edmonton customizations
  * Author: Scott Dohei
- * Version: 4.2.0
+ * Version: 4.5.0
  * Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * GitHub Plugin URI: https://github.com/naiopedmonton/naiop-event-checkout
  * Text Domain: naiop-event-checkout
@@ -99,33 +99,47 @@ function locate_order_email_template($template, $template_name, $template_path) 
 	return $template;
 }
 
-function event_registration_fields($count) {
-	for ($x = 0; $x < $count; $x++) {
-		echo '<div class="naiop_registration">';
-		echo '<p class="form-row form-row-first validate-required">';
-			echo '<label for="naiop_event_fname' . $x . '">First Name&nbsp;<abbr class="required" title="required">*</abbr></label>';
-			echo '<span class="woocommerce-input-wrapper">';
-				echo '<input type="text" class="input-text " name="naiop_event_fname[]" id="naiop_event_fname' . $x . '" placeholder="" value="" autocomplete="naiop_event_fname">';
-			echo '</span>';
-		echo '</p>';
-		echo '<p class="form-row form-row-first validate-required">';
-			echo '<label for="naiop_event_lname' . $x . '">Last Name&nbsp;<abbr class="required" title="required">*</abbr></label>';
-			echo '<span class="woocommerce-input-wrapper">';
-				echo '<input type="text" class="input-text " name="naiop_event_lname[]" id="naiop_event_lname' . $x . '" placeholder="" value="" autocomplete="naiop_event_lname">';
-			echo '</span>';
-		echo '</p>';
-		echo '<p class="form-row validate-required">';
-			echo '<label for="naiop_event_email' . $x . '">Email&nbsp;<abbr class="required" title="required">*</abbr></label>';
-			echo '<span class="woocommerce-input-wrapper">';
-				echo '<input type="text" class="input-text " name="naiop_event_email[]" id="naiop_event_email' . $x . '" placeholder="" value="" autocomplete="naiop_event_email">';
-			echo '</span>';
-		echo '</p>';
-		echo '<p class="form-row">';
-			echo '<label for="naiop_event_diet' . $x . '">Dietary Restrictions (optional)</label>';
-			echo '<span class="woocommerce-input-wrapper">';
-				echo '<input type="text" class="input-text " name="naiop_event_diet[]" id="naiop_event_diet' . $x . '" placeholder="" value="" autocomplete="naiop_event_diet">';
-			echo '</span>';
-		echo '</p>';
+function event_registration_fields($ticket_metas) {
+	foreach ($ticket_metas as $x => $ticket_meta) {
+		$type_name = $ticket_meta['name'];
+		$type_price = $ticket_meta['price'];
+		$type_seats = ((int)$ticket_meta['seats']);
+		echo '<div class="ticket-registration">';
+			echo '<div class="ticket-name">' . $type_name . '</div>';
+			for ($i = 0; $i < $type_seats; $i++) {
+				if ( $i > 0 ) {
+					echo '<hr />';
+				}
+				$nonce = $x . $i;
+				echo '<div class="seat-registration">';
+					echo '<input type="hidden" name="naiop_event_ticket_type[]" value="' . $type_name . '">';
+					echo '<input type="hidden" name="naiop_event_ticket_price[]" value="' . $type_price . '">';
+					echo '<p class="form-row form-row-first validate-required">';
+						echo '<label for="naiop_event_fname' . $nonce . '">First Name&nbsp;<abbr class="required" title="required">*</abbr></label>';
+						echo '<span class="woocommerce-input-wrapper">';
+							echo '<input type="text" class="input-text " name="naiop_event_fname[]" id="naiop_event_fname' . $nonce . '" placeholder="" value="" autocomplete="naiop_event_fname">';
+						echo '</span>';
+					echo '</p>';
+					echo '<p class="form-row form-row-first validate-required">';
+						echo '<label for="naiop_event_lname' . $nonce . '">Last Name&nbsp;<abbr class="required" title="required">*</abbr></label>';
+						echo '<span class="woocommerce-input-wrapper">';
+							echo '<input type="text" class="input-text " name="naiop_event_lname[]" id="naiop_event_lname' . $nonce . '" placeholder="" value="" autocomplete="naiop_event_lname">';
+						echo '</span>';
+					echo '</p>';
+					echo '<p class="form-row validate-required">';
+						echo '<label for="naiop_event_email' . $nonce . '">Email&nbsp;<abbr class="required" title="required">*</abbr></label>';
+						echo '<span class="woocommerce-input-wrapper">';
+							echo '<input type="text" class="input-text " name="naiop_event_email[]" id="naiop_event_email' . $nonce . '" placeholder="" value="" autocomplete="naiop_event_email">';
+						echo '</span>';
+					echo '</p>';
+					echo '<p class="form-row">';
+						echo '<label for="naiop_event_diet' . $nonce . '">Dietary Restrictions (optional)</label>';
+						echo '<span class="woocommerce-input-wrapper">';
+							echo '<input type="text" class="input-text " name="naiop_event_diet[]" id="naiop_event_diet' . $nonce . '" placeholder="" value="" autocomplete="naiop_event_diet">';
+						echo '</span>';
+					echo '</p>';
+				echo '</div>';
+			}
 		echo '</div>';
 	}
 }
@@ -206,15 +220,16 @@ function course_fields() {
 	echo '</p>';
 }
 
-function count_cart_event_registrations() {
-	$event_registrations = 0;
+function get_cart_event_ticket_types() {
+	$ticket_types = array();
 	foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
-		$event_registrations += count_cart_item_event_registrations($cart_item);
+		$item_ticket_meta = get_cart_item_ticket_meta($cart_item);
+		$ticket_types = array_merge($ticket_types, $item_ticket_meta);
 	}
-	return $event_registrations;
+	return $ticket_types;
 }
 
-function count_cart_item_event_registrations($cart_item) {
+function get_cart_item_ticket_meta($cart_item) {
 	$event_category = "Events";
 	if (function_exists('mt_get_settings')) {
 		$options  = mt_get_settings();
@@ -224,10 +239,21 @@ function count_cart_item_event_registrations($cart_item) {
 		$product = wc_get_product( $cart_item['product_id'] );
 		$seats_per_ticket = get_post_meta( $cart_item['product_id'], "naiop_seats", true );
 		$seats_per_ticket = is_numeric( $seats_per_ticket ) ? ((int)$seats_per_ticket) : 1;
-		return $cart_item['quantity'] * $seats_per_ticket;
+
+		$ticket_meta = array('price' => $product->get_price(), 'name' => $product->get_title(), 'seats' => $seats_per_ticket);
+		return array_fill(0, $cart_item['quantity'], $ticket_meta);
 	}
 
-	return 0;
+	return array();
+}
+
+function count_cart_event_registrations() {
+	$count = 0;
+	$event_ticket_types = get_cart_event_ticket_types();
+	foreach ($event_ticket_types as $i => $ticket_meta) {
+		$count += ((int)$ticket_meta['seats']);
+	}
+	return $count;
 }
 
 function is_course_cart_item($cart_item) {
@@ -253,10 +279,10 @@ function naiop_checkout_end() {
 			course_fields();
 		}
 
-		$event_registrations = count_cart_event_registrations();
-		if ($event_registrations > 0) {
+		$event_ticket_types = get_cart_event_ticket_types();
+		if ( count($event_ticket_types) > 0 ) {
 			echo '<h3>Event Registration</h3>';
-			event_registration_fields($event_registrations);
+			event_registration_fields($event_ticket_types);
 		}
 	echo "</div>";
 }
@@ -302,6 +328,26 @@ function naiop_checkout_validation($data, $errors) {
 
 	$event_registrations = count_cart_event_registrations();
 	if ($event_registrations > 0) {
+		if (!isset($_POST['naiop_event_ticket_type']) || !is_array($_POST["naiop_event_ticket_type"]) || count($_POST["naiop_event_ticket_type"]) < $event_registrations) {
+			$errors->add('validation', __('Wrong number of Event Registrations.'));
+		}
+		foreach ($_POST["naiop_event_ticket_type"] as $name_val) {
+			if (strlen(trim($name_val)) <= 0) {
+				$errors->add('validation', __('Missing ticket type for some Event Registrations.'));
+				break;
+			}
+		}
+
+		if (!isset($_POST['naiop_event_ticket_price']) || !is_array($_POST["naiop_event_ticket_price"]) || count($_POST["naiop_event_ticket_price"]) < $event_registrations) {
+			$errors->add('validation', __('Wrong number of Event Registrations.'));
+		}
+		foreach ($_POST["naiop_event_ticket_price"] as $name_val) {
+			if (strlen(trim($name_val)) <= 0) {
+				$errors->add('validation', __('Missing ticket price for some Event Registrations.'));
+				break;
+			}
+		}
+
 		if (!isset($_POST['naiop_event_fname']) || !is_array($_POST["naiop_event_fname"]) || count($_POST["naiop_event_fname"]) < $event_registrations) {
 			$errors->add('validation', __('Wrong number of Event Registrations.'));
 		}
@@ -353,6 +399,8 @@ function update_order_registrations($order, $data) {
 
 	$event_registrations = count_cart_event_registrations();
 	if ($event_registrations > 0) {
+		$order->add_meta_data("naiop_event_ticket_type", $_POST["naiop_event_ticket_type"], true);
+		$order->add_meta_data("naiop_event_ticket_price", $_POST["naiop_event_ticket_price"], true);
 		$order->add_meta_data("naiop_event_fname", $_POST["naiop_event_fname"], true);
 		$order->add_meta_data("naiop_event_lname", $_POST["naiop_event_lname"], true);
 		$order->add_meta_data("naiop_event_email", $_POST["naiop_event_email"], true);
@@ -404,16 +452,18 @@ function naiop_email_order_registration($order, $sent_to_admin, $plain_text, $em
 				debug_echo('<h2 style=\'display: block; font-family: "Helvetica Neue",Helvetica,Roboto,Arial,sans-serif; font-size: 18px; font-weight: bold; line-height: 130%; margin: 0 0 18px; text-align: left;\'>Event Registration</h2>');
 				debug_echo('<div class="address" style="padding: 12px; color: #636363; border: 1px solid #e5e5e5;">');
 					// required inputs
+					$ticket_type_arr = $order->get_meta('naiop_event_ticket_type');
 					$first_name_arr = $order->get_meta('naiop_event_fname');
 					$last_name_arr = $order->get_meta('naiop_event_lname');
 					$email_arr = $order->get_meta('naiop_event_email');
 					$diet_arr = $order->get_meta('naiop_event_diet');
 					for ($x = 0; $x < $event_registrations; $x++) {
 						if (!isset($first_name_arr[$x]) || !isset($last_name_arr[$x]) || !isset($email_arr[$x])) {
-							error_log("Event registration first name is missing @ " . $x . ". Expected " . $event_registrations);
+							error_log("Event registration is missing required metadata @ " . $x . ". Expected " . $event_registrations);
 							break;
 						}
 
+						debug_echo('<strong>Ticket Type:</strong> ' . 		$ticket_type_arr[$x] . '<br>');
 						debug_echo('<strong>Name:</strong> ' . 		$first_name_arr[$x] . " " . $last_name_arr[$x] . '<br>');
 						debug_echo('<strong>Email:</strong> ' . 	$email_arr[$x]);
 						$diet = $diet_arr[$x];

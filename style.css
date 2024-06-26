@@ -11,3 +11,25 @@
     margin-bottom: 0;
     margin-top: 0;
 }
+
+#naiop-registration .ticket-registration {
+    background: #eaeff1;
+    padding: 0.4em 0.5em;
+    border-radius: 0.5em;
+}
+#naiop-registration .ticket-registration + .ticket-registration,
+#naiop-registration .ticket-registration .seat-registration + .seat-registration {
+    margin-top: 0.5em;
+}
+#naiop-registration .ticket-registration .form-row {
+    margin: 0;
+}
+#naiop-registration .ticket-registration label {
+    font-size: 18px; /**/
+    color: rgb(102, 102, 102); /**/
+    margin: 0;
+}
+#naiop-registration .ticket-registration .ticket-name {
+    font-size: 12px;
+    font-weight: bold;
+}
